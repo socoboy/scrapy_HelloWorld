@@ -6,6 +6,7 @@
 # http://doc.scrapy.org/en/latest/topics/items.html
 
 import scrapy
+from enum import Enum
 
 
 class ProxiesItem(scrapy.Item):
@@ -20,4 +21,14 @@ class ProxiesItem(scrapy.Item):
     response = scrapy.Field()
     transfer = scrapy.Field()
 
-    pass
+
+class Fields(Enum):
+    ip = 'ip'
+    port = 'port'
+    protocol = 'protocol'
+    anonymity = 'anonymity'
+    country = 'country'
+    region = 'region'
+    uptime = 'uptime'
+    response = 'response'
+    transfer = 'transfer'

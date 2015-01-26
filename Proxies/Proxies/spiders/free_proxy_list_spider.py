@@ -1,5 +1,6 @@
 __author__ = 'socoboy'
 import scrapy
+from Proxies.items import ProxiesItem, Fields
 
 
 class FreeProxyListSpider(scrapy.Spider):
@@ -8,6 +9,52 @@ class FreeProxyListSpider(scrapy.Spider):
     start_urls = ['http://www.freeproxylists.net']
 
     def parse(self, response):
-        filename = response.url.split("/")[-1]
-        with open(filename, 'wb') as f:
-            f.write(response.body)
+        field_map_with_column = {
+            u'IP Address': Fields.ip,
+            u'Port': Fields.port,
+            u'Protocol': Fields.protocol,
+            u'Anonymity': Fields.anonymity,
+            u'Country': Fields.country,
+            u'Region': Fields.region,
+            u'Uptime': Fields.uptime,
+            u'Response': Fields.response,
+            u'Transfer': Fields.transfer
+        }
+
+        column_map = {}
+        for idx, sel in enumerate(response.css('table.DataGrid tr.Caption td')):
+            column_name = sel.xpath('a/text()').extract()[0]
+            if column_name in field_map_with_column:
+                column_map[field_map_with_column[column_name]] = idx
+
+        for sel in response.css('table.DataGrid tr:not(.Caption)'):
+            item = ProxiesItem()
+            sel_td = sel.xpath('td')
+            if Fields.ip in column_map:
+                item[Fields.ip.name] = sel_td[column_map[Fields.ip]].xpath('//a/text()').extract()
+
+            if Fields.port in column_map:
+                item[Fields.port.name] = sel_td[column_map[Fields.port]].xpath('text()').extract()
+
+            if Fields.protocol in column_map:
+                item[Fields.protocol.name] = sel_td[column_map[Fields.protocol]].xpath('text()').extract()
+
+            if Fields.anonymity in column_map:
+                item[Fields.anonymity.name] = sel_td[column_map[Fields.anonymity]].xpath('text()').extract()
+
+            if Fields.country in column_map:
+                item[Fields.country.name] = sel_td[column_map[Fields.country]].xpath('text()').extract()
+
+            if Fields.region in column_map:
+                item[Fields.region.name] = sel_td[column_map[Fields.region]].xpath('text()').extract()
+
+            if Fields.uptime in column_map:
+                item[Fields.uptime.name] = sel_td[column_map[Fields.uptime]].xpath('text()').extract()
+
+            if Fields.response in column_map:
+                item[Fields.response.name] = sel_td[column_map[Fields.response]].xpath('//span/@style').extract()
+
+            if Fields.transfer in column_map:
+                item[Fields.transfer.name] = sel_td[column_map[Fields.transfer]].xpath('//span/@style').extract()
+
+            yield item
