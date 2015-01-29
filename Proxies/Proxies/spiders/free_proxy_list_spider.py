@@ -29,9 +29,12 @@ class FreeProxyListSpider(scrapy.Spider):
 
         for sel in response.css('table.DataGrid tr:not(.Caption)'):
             item = ProxiesItem()
-            sel_td = sel.xpath('td')
+            sel_td = sel.css('td:not([colspan="10"])')
+            if not sel_td:
+                continue
+
             if Fields.ip in column_map:
-                item[Fields.ip.name] = sel_td[column_map[Fields.ip]].xpath('//a/text()').extract()
+                item[Fields.ip.name] = sel_td[column_map[Fields.ip]].xpath('script/text()').extract()
 
             if Fields.port in column_map:
                 item[Fields.port.name] = sel_td[column_map[Fields.port]].xpath('text()').extract()
@@ -52,9 +55,9 @@ class FreeProxyListSpider(scrapy.Spider):
                 item[Fields.uptime.name] = sel_td[column_map[Fields.uptime]].xpath('text()').extract()
 
             if Fields.response in column_map:
-                item[Fields.response.name] = sel_td[column_map[Fields.response]].xpath('//span/@style').extract()
+                item[Fields.response.name] = sel_td[column_map[Fields.response]].xpath('.//span/@style').extract()
 
             if Fields.transfer in column_map:
-                item[Fields.transfer.name] = sel_td[column_map[Fields.transfer]].xpath('//span/@style').extract()
+                item[Fields.transfer.name] = sel_td[column_map[Fields.transfer]].xpath('.//span/@style').extract()
 
             yield item

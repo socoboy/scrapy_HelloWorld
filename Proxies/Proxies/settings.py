@@ -15,3 +15,7 @@ NEWSPIDER_MODULE = 'Proxies.spiders'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'Proxies (+http://www.yourdomain.com)'
+
+DOWNLOADER_MIDDLEWARES = {
+    'Proxies.middlewares.downloaders.WebDriverDownloaderMiddleware': 543,
+}
