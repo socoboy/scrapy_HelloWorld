@@ -19,3 +19,10 @@ NEWSPIDER_MODULE = 'Proxies.spiders'
 DOWNLOADER_MIDDLEWARES = {
     'Proxies.middlewares.downloaders.WebDriverDownloaderMiddleware': 543,
 }
+
+# Setting for using selenium webdriver for load javascript
+# WEB_DRIVER_ENABLED => enable web driver
+WEB_DRIVER_ENABLED = True
+# WEB_DRIVER_NAME availables: phantomjs, chrome, firefox, opera, ie
+WEB_DRIVER_NAME = 'phantomjs'
+# WEB_DRIVER_PATH: path to webdriver executable

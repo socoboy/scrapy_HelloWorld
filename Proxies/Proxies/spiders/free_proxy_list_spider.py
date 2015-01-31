@@ -1,12 +1,15 @@
 __author__ = 'socoboy'
-import scrapy
+from scrapy import Spider, Request
 from Proxies.items import ProxiesItem, Fields
 
 
-class FreeProxyListSpider(scrapy.Spider):
+class FreeProxyListSpider(Spider):
     name = 'freeproxylist'
     allowed_domains = ['http://www.freeproxylists.net']
     start_urls = ['http://www.freeproxylists.net']
+
+    def make_requests_from_url(self, url):
+        return Request(url, dont_filter=True, meta={'need_load_js': True})
 
     def parse(self, response):
         field_map_with_column = {
