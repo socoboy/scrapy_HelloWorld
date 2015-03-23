@@ -2,15 +2,10 @@ __author__ = 'socoboy'
 
 from scrapy.core.downloader.handlers.http11 import HTTP11DownloadHandler
 from selenium import webdriver
-from twisted.internet import defer, reactor, threads, protocol
+from twisted.internet import reactor, threads
 from twisted.internet.error import TimeoutError
 from time import time
 from urlparse import urldefrag
-from scrapy.http import Headers
-from scrapy.responsetypes import responsetypes
-from cStringIO import StringIO
-from scrapy.xlib.tx import ResponseDone
-from twisted.web.http import PotentialDataLoss
 
 
 class SeleniumDownloadHandler(HTTP11DownloadHandler):
@@ -52,38 +47,16 @@ class SeleniumAsyncAgent(object):
         # set download latency
         d.addCallback(self._cb_latency, request, start_time)
 
-        # response body is ready to be consumed
-        d.addCallback(self._cb_bodyready, request)
-        d.addCallback(self._cb_bodydone, request, url)
         # check download timeout
         self._timeout_cl = reactor.callLater(timeout, d.cancel)
-        d.addBoth(self._cb_timeout, request, url, timeout)
+        d.addBoth(self._cb_timeout, url, timeout)
         return d
 
     def _cb_latency(self, result, request, start_time):
         request.meta['download_latency'] = time() - start_time
         return result
 
-    def _cb_bodyready(self, txresponse, request):
-        # deliverBody hangs for responses without body
-        if txresponse.length == 0:
-            return txresponse, '', None
-
-        def _cancel(_):
-            txresponse._transport._producer.loseConnection()
-
-        d = defer.Deferred(_cancel)
-        txresponse.deliverBody(_ResponseReader(d, txresponse, request))
-        return d
-
-    def _cb_bodydone(self, result, request, url):
-        txresponse, body, flags = result
-        status = int(txresponse.code)
-        headers = Headers(txresponse.headers.getAllRawHeaders())
-        respcls = responsetypes.from_args(headers=headers, url=url)
-        return respcls(url=url, status=status, headers=headers, body=body, flags=flags)
-
-    def _cb_timeout(self, result, request, url, timeout):
+    def _cb_timeout(self, result, url, timeout):
         if self._timeout_cl.active():
             self._timeout_cl.cancel()
             return result
@@ -92,7 +65,8 @@ class SeleniumAsyncAgent(object):
 
 def downloadWithSelenium(request, driverName, driverPath):
     driver = create_web_driver(driverName, driverPath)
-    #pending
+    page_handler = request.meta.get('page_handler') or None
+    return page_handler(driver, request)
 
 
 def create_web_driver(driverName=None, driverPath=None):
@@ -111,27 +85,3 @@ def create_web_driver(driverName=None, driverPath=None):
         driver = driver_class()
 
     return driver
-
-
-class _ResponseReader(protocol.Protocol):
-
-    def __init__(self, finished, txresponse, request):
-        self._finished = finished
-        self._txresponse = txresponse
-        self._request = request
-        self._bodybuf = StringIO()
-
-    def dataReceived(self, bodyBytes):
-        self._bodybuf.write(bodyBytes)
-
-    def connectionLost(self, reason):
-        if self._finished.called:
-            return
-
-        body = self._bodybuf.getvalue()
-        if reason.check(ResponseDone):
-            self._finished.callback((self._txresponse, body, None))
-        elif reason.check(PotentialDataLoss):
-            self._finished.callback((self._txresponse, body, ['partial']))
-        else:
-            self._finished.errback(reason)

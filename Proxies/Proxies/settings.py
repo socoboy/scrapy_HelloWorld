@@ -29,5 +29,5 @@ DOWNLOAD_HANDLERS = {
 # WEB_DRIVER_ENABLED => enable web driver
 WEB_DRIVER_ENABLED = True
 # WEB_DRIVER_NAME availables: phantomjs, chrome, firefox, opera, ie, Default: phantomjs
-WEB_DRIVER_NAME = 'phantomjs'
+WEB_DRIVER_NAME = 'chrome'
 # WEB_DRIVER_PATH: path to webdriver executable

@@ -1,6 +1,7 @@
 __author__ = 'socoboy'
 from scrapy import Spider, Request
 from Proxies.items import ProxiesItem, Fields
+from scrapy.http.response import Response
 
 
 class FreeProxyListSpider(Spider):
@@ -9,7 +10,12 @@ class FreeProxyListSpider(Spider):
     start_urls = ['http://www.freeproxylists.net', 'http://google.com.vn', 'http://dantri.com.vn', 'http://vietnamnet.vn', 'http://tinhte.vn', 'http://genk.vn', 'http://vnexpress.com', 'http://kenh14.vn', 'http://mp3.zing.vn', 'http://nhaccuatui.com']
 
     def make_requests_from_url(self, url):
-        return Request(url, dont_filter=True, meta={'selenium_needed': True})
+        return Request(url, dont_filter=True, meta={'selenium_needed': True,
+                                                    'page_handler': self.page_handler})
+
+    def page_handler(self, driver, request):
+        driver.get(request.url)
+        return Response(request.url, body=driver.page_source, request=request)
 
     def parse(self, response):
         pass
