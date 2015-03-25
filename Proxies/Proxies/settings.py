@@ -31,3 +31,7 @@ WEB_DRIVER_ENABLED = True
 # WEB_DRIVER_NAME availables: phantomjs, chrome, firefox, opera, ie, Default: phantomjs
 WEB_DRIVER_NAME = 'chrome'
 # WEB_DRIVER_PATH: path to webdriver executable
+WEB_DRIVER_CONCURRENT_REQUESTS = 16
+
+#WEB_DRIVER_TIMEOUT: default 300
+WEB_DRIVER_TIMEOUT = 300
